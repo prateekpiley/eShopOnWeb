@@ -4,7 +4,7 @@ on:
   workflow_run:                         # ← triggers after ci.yml completes
     workflows: ["CI"]                   # ← must match name: in ci.yml exactly
     types: [completed]
-    branches: [feature/prateek]  
+    branches: [feature/prateek]  # branch filter to ensure it only runs for the feature branch
 
 permissions:
   contents: read
