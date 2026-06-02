@@ -1,0 +1,52 @@
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [feature/prateek]
+  # pull_request:
+  #   branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore eShopOnWeb.sln
+
+      - name: Build solution
+        run: dotnet build eShopOnWeb.sln --no-restore --configuration Release
+
+      # - name: Run Unit Tests
+      #   run: dotnet test tests/UnitTests/UnitTests.csproj --no-build --configuration Release --logger "trx;LogFileName=unit-test-results.trx"
+
+      # - name: Run Integration Tests
+      #   run: dotnet test tests/IntegrationTests/IntegrationTests.csproj --no-build --configuration Release --logger "trx;LogFileName=integration-test-results.trx"
+
+      # - name: Upload test results
+      #   uses: actions/upload-artifact@v4
+      #   if: always()
+      #   with:
+      #     name: test-results
+      #     path: "**/*.trx"
