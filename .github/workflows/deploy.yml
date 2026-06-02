@@ -1,0 +1,41 @@
+name: Deploy
+
+on:
+  workflow_run:                         # ← triggers after ci.yml completes
+    workflows: ["CI"]                   # ← must match name: in ci.yml exactly
+    types: [completed]
+    branches: [feature/prateek]  # ← only for specific branches (optional)
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # ← only if CI passed
+    environment: staging
+    timeout-minutes: 15
+
+    steps:
+      - name: Download artifact from CI
+        uses: actions/download-artifact@v4
+        with:
+          name: webapp-publish
+          path: ./publish
+          run-id: ${{ github.event.workflow_run.id }}   # ← fetch from CI run ✅
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Login to Azure (OIDC)
+      #   uses: azure/login@v2
+      #   with:
+      #     client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # - name: Deploy to Staging
+      #   uses: azure/webapps-deploy@v3
+      #   with:
+      #     app-name: ${{ secrets.AZURE_WEBAPP_NAME_STAGING }}
+      #     package: ./publish
